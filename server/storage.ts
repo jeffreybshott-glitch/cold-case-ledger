@@ -1,8 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Lead } from '@shared/schema';
 
-const supabaseUrl = 'https://krwospkublmuzclzmbpm.supabase.co';
-const supabaseKey = 'sb_publishable_UlJ2tWMoFJsYkiPMpqzjzA_Dhd_NTON';
+const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing Supabase environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
+}
 
 // Create a single supabase client for interacting with your database
 export const supabase = createClient(supabaseUrl, supabaseKey);
