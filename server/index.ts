@@ -1,12 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import path from "path";
-import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
@@ -27,13 +23,10 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
-// Serve client/public static files (llms.txt, favicon, etc.) before any catch-all or React routes
-app.use(express.static(path.join(__dirname, "../client/public")));
-
-// Explicit fallback for llms.txt using sendFile — guards against express.static path mismatches
-app.get("/llms.txt", (_req, res) => {
-  res.sendFile(path.join(__dirname, "../client/public/llms.txt"));
-});
+// Serve client/public static files before any catch-all or React routes.
+// process.cwd() is used here because __dirname is unavailable in ESM (tsx dev)
+// and import.meta.url is unavailable in CJS (esbuild production build).
+app.use(express.static(path.join(process.cwd(), "client/public")));
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
