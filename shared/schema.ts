@@ -21,6 +21,14 @@ export const createCaseSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
   location: z.string().min(1, "Location is required"),
+  agent_id: z.string().uuid("agent_id must be a valid UUID").optional(),
+});
+
+export const createLeadSchema = z.object({
+  case_id: z.string().uuid("case_id must be a valid UUID"),
+  agent_id: z.string().uuid("agent_id must be a valid UUID"),
+  content: z.string().min(1, "Content is required"),
+  source_url: z.string().url().optional().or(z.literal("")),
 });
 
 export const leadSchema = z.object({

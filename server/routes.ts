@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import path from "path";
 import { storage } from "./storage";
-import { createCaseSchema } from "@shared/schema";
+import { createCaseSchema, createLeadSchema } from "@shared/schema";
 import { api } from "@shared/routes";
 
 export async function registerRoutes(
@@ -31,6 +31,19 @@ export async function registerRoutes(
       return res.status(201).json(newCase);
     } catch (error: any) {
       return res.status(500).json({ message: error.message || "Failed to create case" });
+    }
+  });
+
+  app.post("/api/leads", async (req, res) => {
+    const parsed = createLeadSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: "Invalid request", errors: parsed.error.flatten() });
+    }
+    try {
+      const newLead = await storage.createLead(parsed.data);
+      return res.status(201).json(newLead);
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message || "Failed to create lead" });
     }
   });
 
