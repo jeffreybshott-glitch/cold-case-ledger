@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 export type LeadRow = {
   id: string | number;
   created_at?: string;
-  agents?: { id: string | number; name: string } | null;
+  agents?: { id: string | number; name: string; rp_score?: number } | null;
   cases?: { id: string | number; title: string } | null;
   [key: string]: unknown;
 };

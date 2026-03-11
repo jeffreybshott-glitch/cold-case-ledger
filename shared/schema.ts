@@ -5,6 +5,7 @@ import { pgTable, serial } from "drizzle-orm/pg-core";
 export const agentSchema = z.object({
   id: z.string().or(z.number()),
   name: z.string(),
+  rp_score: z.number().int().default(0).optional(),
 });
 
 export const caseSchema = z.object({
