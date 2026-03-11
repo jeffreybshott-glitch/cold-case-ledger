@@ -22,18 +22,14 @@ export interface IStorage {
 
 export class SupabaseStorage implements IStorage {
   async incrementAgentRpScore(agentId: string, points: number): Promise<void> {
-    const { data: agent, error: fetchError } = await supabase
-      .from('agents')
-      .select('rp_score')
-      .eq('id', agentId)
-      .single();
+    const { error } = await supabase.rpc('increment_agent_rp_score', {
+      agent_id: agentId,
+      points,
+    });
 
-    if (fetchError || !agent) return;
-
-    await supabase
-      .from('agents')
-      .update({ rp_score: (agent.rp_score ?? 0) + points })
-      .eq('id', agentId);
+    if (error) {
+      console.error('incrementAgentRpScore – rpc error:', error.message);
+    }
   }
 
   async createCase(data: { title: string; description: string; location: string; agent_id?: string }): Promise<Case> {
