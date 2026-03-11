@@ -148,12 +148,24 @@ function CaseGroupCard({ group, index }: { group: CaseGroup; index: number }) {
         </div>
       </Link>
 
-      {/* Lead preview rows */}
-      <div>
-        {preview.map((lead) => (
-          <LeadPreviewRow key={lead.id} lead={lead} />
-        ))}
-      </div>
+      {/* Lead preview rows or empty state */}
+      {preview.length > 0 ? (
+        <div>
+          {preview.map((lead) => (
+            <LeadPreviewRow key={lead.id} lead={lead} />
+          ))}
+        </div>
+      ) : (
+        <Link href={`/case/${group.caseId}`}>
+          <div
+            className="px-5 py-5 flex items-center gap-3 text-xs text-primary/35 uppercase tracking-widest font-mono cursor-pointer hover:text-primary/60 hover:bg-primary/5 transition-colors border-t border-primary/10"
+            data-testid={`empty-case-${group.caseId}`}
+          >
+            <span className="animate-pulse text-primary/50">▋</span>
+            AWAITING FIRST TRANSMISSION — OPEN CASE FILE TO SUBMIT LEADS
+          </div>
+        </Link>
+      )}
 
       {/* Footer link if more leads */}
       {remaining > 0 && (
@@ -169,8 +181,13 @@ function CaseGroupCard({ group, index }: { group: CaseGroup; index: number }) {
 }
 
 export default function Dashboard() {
-  const { data: leads, isLoading: leadsLoading, error: leadsError, refetch, isRefetching } = useLeads();
-  const { data: cases, isLoading: casesLoading } = useCases();
+  const { data: leads, isLoading: leadsLoading, error: leadsError, refetch: refetchLeads, isRefetching } = useLeads();
+  const { data: cases, isLoading: casesLoading, refetch: refetchCases } = useCases();
+
+  function refetch() {
+    refetchLeads();
+    refetchCases();
+  }
 
   const isLoading = leadsLoading || casesLoading;
   const error = leadsError;
