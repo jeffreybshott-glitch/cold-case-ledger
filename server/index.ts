@@ -1,7 +1,12 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
+import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
@@ -21,6 +26,9 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
+
+// Serve client/public static files (e.g. llms.txt, favicon) before any catch-all routes
+app.use(express.static(path.join(__dirname, "../client/public")));
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
