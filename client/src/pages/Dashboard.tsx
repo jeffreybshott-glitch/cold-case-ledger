@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useLeads, type LeadRow } from "@/hooks/use-leads";
+import { useCases } from "@/hooks/use-cases";
 import { Terminal, Database, RefreshCw, AlertTriangle, Activity, FolderOpen, ChevronRight, MessageSquare, User, Clock, Medal } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
@@ -168,21 +169,36 @@ function CaseGroupCard({ group, index }: { group: CaseGroup; index: number }) {
 }
 
 export default function Dashboard() {
-  const { data: leads, isLoading, error, refetch, isRefetching } = useLeads();
+  const { data: leads, isLoading: leadsLoading, error: leadsError, refetch, isRefetching } = useLeads();
+  const { data: cases, isLoading: casesLoading } = useCases();
+
+  const isLoading = leadsLoading || casesLoading;
+  const error = leadsError;
 
   const caseGroups = useMemo<CaseGroup[]>(() => {
-    if (!leads) return [];
     const map = new Map<string, CaseGroup>();
-    for (const lead of leads) {
-      const caseId = String(lead.cases?.id ?? (lead as any).case_id ?? "unknown");
-      const caseTitle = lead.cases?.title ?? "UNCLASSIFIED_CASE";
-      if (!map.has(caseId)) {
-        map.set(caseId, { caseId, caseTitle, leads: [] });
+
+    // Seed every known case (even those with no leads)
+    if (cases) {
+      for (const c of cases) {
+        map.set(String(c.id), { caseId: String(c.id), caseTitle: c.title, leads: [] });
       }
-      map.get(caseId)!.leads.push(lead);
     }
+
+    // Layer leads onto their cases
+    if (leads) {
+      for (const lead of leads) {
+        const caseId = String(lead.cases?.id ?? (lead as any).case_id ?? "unknown");
+        const caseTitle = lead.cases?.title ?? "UNCLASSIFIED_CASE";
+        if (!map.has(caseId)) {
+          map.set(caseId, { caseId, caseTitle, leads: [] });
+        }
+        map.get(caseId)!.leads.push(lead);
+      }
+    }
+
     return Array.from(map.values());
-  }, [leads]);
+  }, [cases, leads]);
 
   return (
     <div className="min-h-screen pt-8 pb-24 px-4 md:px-8 max-w-5xl mx-auto crt-flicker relative z-10">
