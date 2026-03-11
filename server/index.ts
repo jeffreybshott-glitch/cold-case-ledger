@@ -8,7 +8,17 @@ import { createServer } from "http";
 const app = express();
 const httpServer = createServer(app);
 
-app.use(cors({ origin: '*' }));
+const corsOptions: cors.CorsOptions = {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+// Apply CORS to all routes — must be first
+app.use(cors(corsOptions));
+
+// Respond to OPTIONS preflight requests across every route
+app.options(/.*/, cors(corsOptions));
 
 declare module "http" {
   interface IncomingMessage {
