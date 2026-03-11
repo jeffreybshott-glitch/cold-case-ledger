@@ -1,18 +1,30 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { pgTable, serial } from "drizzle-orm/pg-core";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// We define Zod schemas to type the data coming from Supabase
+export const agentSchema = z.object({
+  id: z.string().or(z.number()),
+  name: z.string(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const caseSchema = z.object({
+  id: z.string().or(z.number()),
+  title: z.string(),
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export const leadSchema = z.object({
+  id: z.string().or(z.number()),
+  description: z.string(),
+  created_at: z.string().optional(),
+  agent_id: z.string().or(z.number()).optional(),
+  case_id: z.string().or(z.number()).optional(),
+  agents: agentSchema.optional().nullable(),
+  cases: caseSchema.optional().nullable(),
+});
+
+export type Agent = z.infer<typeof agentSchema>;
+export type Case = z.infer<typeof caseSchema>;
+export type Lead = z.infer<typeof leadSchema>;
+
+// Dummy table to satisfy Drizzle setup if needed
+export const _dummy = pgTable("_dummy", { id: serial("id").primaryKey() });
