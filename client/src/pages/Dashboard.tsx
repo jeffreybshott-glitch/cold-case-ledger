@@ -1,4 +1,4 @@
-import { useLeads } from "@/hooks/use-leads";
+import { useLeads, type LeadRow } from "@/hooks/use-leads";
 import { LeadCard } from "@/components/LeadCard";
 import { Terminal, Database, RefreshCw, AlertTriangle, Activity } from "lucide-react";
 import { motion } from "framer-motion";

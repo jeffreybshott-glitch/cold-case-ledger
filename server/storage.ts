@@ -20,11 +20,7 @@ export class SupabaseStorage implements IStorage {
     const { data, error } = await supabase
       .from('leads')
       .select(`
-        id,
-        description,
-        created_at,
-        agent_id,
-        case_id,
+        *,
         agents (
           id,
           name

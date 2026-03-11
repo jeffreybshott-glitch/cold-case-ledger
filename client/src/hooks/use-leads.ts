@@ -1,23 +1,35 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@shared/routes";
+import { supabase } from "@/lib/supabase";
+
+export type LeadRow = {
+  id: string | number;
+  created_at?: string;
+  agents?: { id: string | number; name: string } | null;
+  cases?: { id: string | number; title: string } | null;
+  [key: string]: unknown;
+};
 
 export function useLeads() {
-  return useQuery({
-    queryKey: [api.leads.list.path],
+  return useQuery<LeadRow[]>({
+    queryKey: ['/api/leads'],
     queryFn: async () => {
-      const res = await fetch(api.leads.list.path, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch leads");
-      
-      const data = await res.json();
-      
-      // Parse response to ensure type safety based on our schema
-      const parsed = api.leads.list.responses[200].safeParse(data);
-      if (!parsed.success) {
-        console.error("[Zod] Validation failed:", parsed.error.format());
-        throw new Error("Invalid data format received from server");
-      }
-      
-      return parsed.data;
+      const { data, error } = await supabase
+        .from('leads')
+        .select(`
+          *,
+          agents (
+            id,
+            name
+          ),
+          cases (
+            id,
+            title
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw new Error(error.message);
+      return (data as LeadRow[]) || [];
     },
   });
 }
