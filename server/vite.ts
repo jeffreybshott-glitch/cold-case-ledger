@@ -32,6 +32,11 @@ export async function setupVite(server: Server, app: Express) {
   app.use(vite.middlewares);
 
   app.use("/{*path}", async (req, res, next) => {
+    // Don't serve the React app for static file requests (e.g. .txt, .xml, .json)
+    if (/\.[a-z0-9]+$/i.test(req.path)) {
+      return next();
+    }
+
     const url = req.originalUrl;
 
     try {

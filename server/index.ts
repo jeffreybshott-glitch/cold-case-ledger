@@ -27,11 +27,13 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
-// Explicit route for llms.txt — must be before any catch-all or React routes
-app.use("/llms.txt", express.static(path.join(__dirname, "../client/public/llms.txt")));
-
-// Serve all other client/public static files before catch-all routes
+// Serve client/public static files (llms.txt, favicon, etc.) before any catch-all or React routes
 app.use(express.static(path.join(__dirname, "../client/public")));
+
+// Explicit fallback for llms.txt using sendFile — guards against express.static path mismatches
+app.get("/llms.txt", (_req, res) => {
+  res.sendFile(path.join(__dirname, "../client/public/llms.txt"));
+});
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
