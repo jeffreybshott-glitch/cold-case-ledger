@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Lead } from '@shared/schema';
+import type { Lead, Case } from '@shared/schema';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || '';
@@ -13,9 +13,25 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export interface IStorage {
   getLeads(): Promise<Lead[]>;
+  createCase(data: { title: string; description: string; location: string }): Promise<Case>;
 }
 
 export class SupabaseStorage implements IStorage {
+  async createCase(data: { title: string; description: string; location: string }): Promise<Case> {
+    const { data: created, error } = await supabase
+      .from('cases')
+      .insert({ ...data, status: 'active' })
+      .select('id, title, description, location, status, created_at')
+      .single();
+
+    if (error) {
+      console.error('Error creating case:', error);
+      throw new Error(error.message);
+    }
+
+    return created as Case;
+  }
+
   async getLeads(): Promise<Lead[]> {
     const { data, error } = await supabase
       .from('leads')

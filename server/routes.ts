@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import path from "path";
 import { storage } from "./storage";
+import { createCaseSchema } from "@shared/schema";
 import { api } from "@shared/routes";
 
 export async function registerRoutes(
@@ -18,6 +19,19 @@ export async function registerRoutes(
   );
   app.get("/llms.txt", (_req, res) => {
     res.sendFile(llmsFile);
+  });
+
+  app.post("/api/cases", async (req, res) => {
+    const parsed = createCaseSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: "Invalid request", errors: parsed.error.flatten() });
+    }
+    try {
+      const newCase = await storage.createCase(parsed.data);
+      return res.status(201).json(newCase);
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message || "Failed to create case" });
+    }
   });
 
   app.get(api.leads.list.path, async (req, res) => {
