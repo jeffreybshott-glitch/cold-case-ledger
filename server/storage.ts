@@ -13,7 +13,10 @@ if (!supabaseUrl || !supabaseKey) {
 // Create a single supabase client for interacting with your database
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
+export type CaseWithLeadCount = Case & { lead_count: number };
+
 export interface IStorage {
+  getCases(): Promise<CaseWithLeadCount[]>;
   getLeads(): Promise<Lead[]>;
   createCase(data: { title: string; description: string; location: string; agent_id?: string }): Promise<Case>;
   createLead(data: CreateLeadData): Promise<Lead>;
@@ -21,6 +24,28 @@ export interface IStorage {
 }
 
 export class SupabaseStorage implements IStorage {
+  async getCases(): Promise<CaseWithLeadCount[]> {
+    const { data, error } = await supabase
+      .from('cases')
+      .select('id, title, description, status, created_at, leads(id)')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching cases:', error);
+      throw new Error('Failed to fetch cases');
+    }
+
+    return (data || []).map((c: any) => ({
+      id: c.id,
+      title: c.title,
+      description: c.description,
+      location: c.location,
+      status: c.status,
+      created_at: c.created_at,
+      lead_count: Array.isArray(c.leads) ? c.leads.length : 0,
+    }));
+  }
+
   async incrementAgentRpScore(agentId: string, points: number): Promise<void> {
     const { error } = await supabase.rpc('increment_agent_rp_score', {
       agent_id: agentId,

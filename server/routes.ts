@@ -21,6 +21,15 @@ export async function registerRoutes(
     res.sendFile(llmsFile);
   });
 
+  app.get("/api/cases", async (_req, res) => {
+    try {
+      const cases = await storage.getCases();
+      res.json(cases);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch cases" });
+    }
+  });
+
   app.post("/api/cases", async (req, res) => {
     const parsed = createCaseSchema.safeParse(req.body);
     if (!parsed.success) {
