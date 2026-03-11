@@ -1,6 +1,29 @@
-node_modules
-dist
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+server/public/
+
+# Environment & secrets — NEVER commit these
+.env
+.env.*
+!.env.example
+
+# Replit agent local state
+.local/
+
+# macOS
 .DS_Store
-server/public
+
+# Logs
+*.log
+logs/
+
+# Vite cache artefacts
 vite.config.ts.*
 *.tar.gz
+
+# Editor
+.vscode/
+.idea/
