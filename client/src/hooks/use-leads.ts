@@ -19,7 +19,8 @@ export function useLeads() {
           *,
           agents (
             id,
-            name
+            name,
+            rp_score
           ),
           cases (
             id,

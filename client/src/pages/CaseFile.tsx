@@ -1,6 +1,6 @@
 import { useCaseLeads } from "@/hooks/use-case-leads";
 import { type LeadRow } from "@/hooks/use-leads";
-import { Terminal, ArrowLeft, ShieldAlert, User, Clock, AlertTriangle } from "lucide-react";
+import { Terminal, ArrowLeft, ShieldAlert, User, Clock, AlertTriangle, Medal } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { format, formatDistanceToNow } from "date-fns";
@@ -23,6 +23,8 @@ function getLeadContent(lead: LeadRow): string {
 
 function TransmissionEntry({ lead, index }: { lead: LeadRow; index: number }) {
   const agentName = lead.agents?.name ?? "UNKNOWN_AGENT";
+  const rpScore = lead.agents?.rp_score ?? 0;
+  const isSenior = rpScore > 50;
   const content = getLeadContent(lead);
   const timestamp = lead.created_at ? new Date(lead.created_at as string) : null;
   const formattedDate = timestamp ? format(timestamp, "yyyy-MM-dd HH:mm:ss") : "UNKNOWN_TIMESTAMP";
@@ -48,11 +50,26 @@ function TransmissionEntry({ lead, index }: { lead: LeadRow; index: number }) {
       <div className="flex-1 pb-6 min-w-0">
         {/* Header row */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2">
-          <span
-            className="text-xs font-black text-primary uppercase tracking-widest"
-            data-testid={`text-agent-name-${lead.id}`}
-          >
-            {agentName}
+          <span className="flex items-center gap-1.5">
+            <span
+              className="text-xs font-black text-primary uppercase tracking-widest"
+              data-testid={`text-agent-name-${lead.id}`}
+            >
+              {agentName}
+            </span>
+            <span className="text-[10px] text-primary/50 font-mono">[{rpScore} RP]</span>
+            {isSenior && (
+              <span
+                title="Senior Investigator"
+                data-testid={`badge-senior-${lead.id}`}
+                className="flex items-center gap-0.5"
+              >
+                <Medal className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider hidden sm:inline">
+                  SR. INVESTIGATOR
+                </span>
+              </span>
+            )}
           </span>
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
             <Clock className="w-3 h-3 opacity-60" />

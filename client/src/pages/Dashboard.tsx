@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useLeads, type LeadRow } from "@/hooks/use-leads";
-import { Terminal, Database, RefreshCw, AlertTriangle, Activity, FolderOpen, ChevronRight, MessageSquare, User, Clock } from "lucide-react";
+import { Terminal, Database, RefreshCw, AlertTriangle, Activity, FolderOpen, ChevronRight, MessageSquare, User, Clock, Medal } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { format } from "date-fns";
@@ -46,9 +46,35 @@ function LoadingSkeleton() {
   );
 }
 
+function AgentTag({ lead }: { lead: LeadRow }) {
+  const agentName = lead.agents?.name ?? "UNKNOWN_AGENT";
+  const rpScore = lead.agents?.rp_score ?? 0;
+  const isSenior = rpScore > 50;
+
+  return (
+    <span className="flex items-center gap-1.5">
+      <span
+        className="text-xs font-bold text-primary uppercase tracking-wider"
+        data-testid={`text-agent-name-${lead.id}`}
+      >
+        {agentName}
+      </span>
+      <span className="text-[10px] text-primary/50 font-mono">[{rpScore} RP]</span>
+      {isSenior && (
+        <span
+          title="Senior Investigator"
+          data-testid={`badge-senior-${lead.id}`}
+          className="flex items-center gap-0.5 text-[10px] font-bold text-amber-400 uppercase tracking-wider"
+        >
+          <Medal className="w-3 h-3 text-amber-400" />
+        </span>
+      )}
+    </span>
+  );
+}
+
 function LeadPreviewRow({ lead }: { lead: LeadRow }) {
   const caseId = String(lead.cases?.id ?? lead.case_id ?? "unknown");
-  const agentName = lead.agents?.name ?? "UNKNOWN_AGENT";
   const content = getLeadContent(lead);
   const formattedDate = lead.created_at
     ? format(new Date(lead.created_at as string), "MMM dd, HH:mm")
@@ -65,7 +91,7 @@ function LeadPreviewRow({ lead }: { lead: LeadRow }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
-            <span className="text-xs font-bold text-primary uppercase tracking-wider">{agentName}</span>
+            <AgentTag lead={lead} />
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               <Clock className="w-3 h-3" />{formattedDate}
             </span>

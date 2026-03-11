@@ -12,7 +12,8 @@ export function useCaseLeads(caseId: string) {
           *,
           agents (
             id,
-            name
+            name,
+            rp_score
           ),
           cases (
             id,
