@@ -27,3 +27,6 @@ vite.config.ts.*
 # Editor
 .vscode/
 .idea/
+
+# Deployment script — contains credentials, never commit
+deploy.sh
