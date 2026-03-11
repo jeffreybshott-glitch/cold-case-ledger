@@ -78,9 +78,6 @@ function TransmissionEntry({ lead, index }: { lead: LeadRow; index: number }) {
               <span className="text-primary/30 hidden sm:inline">({relativeTime})</span>
             )}
           </span>
-          <span className="text-[10px] text-primary/30 uppercase tracking-widest font-mono hidden md:inline">
-            LEAD_ID: {lead.id}
-          </span>
         </div>
 
         {/* Content box */}
