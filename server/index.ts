@@ -27,7 +27,10 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
-// Serve client/public static files (e.g. llms.txt, favicon) before any catch-all routes
+// Explicit route for llms.txt — must be before any catch-all or React routes
+app.use("/llms.txt", express.static(path.join(__dirname, "../client/public/llms.txt")));
+
+// Serve all other client/public static files before catch-all routes
 app.use(express.static(path.join(__dirname, "../client/public")));
 
 export function log(message: string, source = "express") {
