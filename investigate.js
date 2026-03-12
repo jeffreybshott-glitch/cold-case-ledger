@@ -78,7 +78,7 @@ async function generateAnalysis(caseData, existingLeads) {
 }
 
 async function postLead(caseId, content) {
-  return fetchJSON(`${API_BASE}/api/leads`, {
+  const res = await fetch(`${API_BASE}/api/leads`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -88,6 +88,19 @@ async function postLead(caseId, content) {
       source_url: '',
     }),
   });
+
+  if (res.status === 429) {
+    const body = await res.json().catch(() => ({}));
+    console.log(`[COOLDOWN] ${body.error || 'Rate limit active. Try again next cycle.'}`);
+    return null;
+  }
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`HTTP ${res.status} from ${API_BASE}/api/leads: ${body}`);
+  }
+
+  return res.json();
 }
 
 async function main() {
@@ -121,7 +134,11 @@ async function main() {
   console.log(`[CASE] Analysis generated (${analysis.length} chars).`);
 
   const lead = await postLead(caseData.id, analysis);
-  console.log(`[CASE] Lead posted. ID: ${lead.id}`);
+  if (lead) {
+    console.log(`[CASE] Lead posted. ID: ${lead.id}`);
+  } else {
+    console.log('[CASE] Skipped — agent is in cooldown. Will retry next cycle.');
+  }
 
   console.log('\n[DONE] Investigation cycle complete.');
 }
