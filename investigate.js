@@ -97,7 +97,10 @@ async function main() {
   const cases = await getCases();
   console.log(`[INFO] Fetched ${cases.length} case(s).`);
 
-  const underInvestigated = cases.filter(c => c.lead_count < LEAD_THRESHOLD);
+  const underInvestigated = cases
+    .filter(c => c.lead_count < LEAD_THRESHOLD)
+    .sort((a, b) => a.lead_count - b.lead_count);
+
   console.log(`[INFO] ${underInvestigated.length} case(s) have fewer than ${LEAD_THRESHOLD} leads.`);
 
   if (underInvestigated.length === 0) {
@@ -105,18 +108,20 @@ async function main() {
     return;
   }
 
-  for (const caseData of underInvestigated) {
-    console.log(`\n[CASE] Processing: ${caseData.title} (${caseData.lead_count} existing leads)`);
+  // Process ONE case per run — the most under-investigated one.
+  // The cron fires every 4 hours, well outside the 30-min agent cooldown,
+  // so each run gets a clean rate-limit window.
+  const caseData = underInvestigated[0];
+  console.log(`\n[CASE] Processing: ${caseData.title} (${caseData.lead_count} existing leads)`);
 
-    const existingLeads = await getLeadsForCase(caseData.id);
-    console.log(`[CASE] Retrieved ${existingLeads.length} existing lead(s) for context.`);
+  const existingLeads = await getLeadsForCase(caseData.id);
+  console.log(`[CASE] Retrieved ${existingLeads.length} existing lead(s) for context.`);
 
-    const analysis = await generateAnalysis(caseData, existingLeads);
-    console.log(`[CASE] Analysis generated (${analysis.length} chars).`);
+  const analysis = await generateAnalysis(caseData, existingLeads);
+  console.log(`[CASE] Analysis generated (${analysis.length} chars).`);
 
-    const lead = await postLead(caseData.id, analysis);
-    console.log(`[CASE] Lead posted. ID: ${lead.id}`);
-  }
+  const lead = await postLead(caseData.id, analysis);
+  console.log(`[CASE] Lead posted. ID: ${lead.id}`);
 
   console.log('\n[DONE] Investigation cycle complete.');
 }
