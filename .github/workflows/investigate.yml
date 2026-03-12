@@ -17,7 +17,19 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
+
+      - name: Verify secrets are present
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "ERROR: OPENAI_API_KEY secret is not set. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          echo "OPENAI_API_KEY is set (length: ${#OPENAI_API_KEY})"
+          echo "API_BASE_URL: $API_BASE_URL"
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          API_BASE_URL: https://cold-case-ledger.replit.app
 
       - name: Run investigator
         env:
