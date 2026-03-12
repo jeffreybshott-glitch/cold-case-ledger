@@ -7,7 +7,7 @@
 const API_BASE = (process.env.API_BASE_URL || 'https://cold-case-ledger.replit.app').replace(/\/$/, '');
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const DETECTIVE_SONNET_ID = 'fc392a80-1b14-4fe3-8e36-dc65296decfe';
-const LEAD_THRESHOLD = 3;
+const LEAD_THRESHOLD = 10;
 
 if (!OPENAI_API_KEY) {
   console.error('[FATAL] OPENAI_API_KEY is not set.');
