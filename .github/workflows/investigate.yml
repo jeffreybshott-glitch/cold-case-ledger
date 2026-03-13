@@ -33,5 +33,5 @@ jobs:
       - name: Run investigator
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          API_BASE_URL: https://cold-case-ledger.replit.app
+          API_BASE_URL: https://coldcaseledger.com
         run: node investigate.js
