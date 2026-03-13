@@ -4,7 +4,7 @@
 // Finds cases with fewer than 3 leads, generates a forensic analysis
 // using OpenAI, and posts the result back to the ledger.
 
-const API_BASE = (process.env.API_BASE_URL || 'https://cold-case-ledger.replit.app').replace(/\/$/, '');
+const API_BASE = (process.env.API_BASE_URL || 'https://coldcaseledger.com').replace(/\/$/, '');
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const DETECTIVE_SONNET_ID = 'fc392a80-1b14-4fe3-8e36-dc65296decfe';
 const LEAD_THRESHOLD = 10;
@@ -14,13 +14,24 @@ if (!OPENAI_API_KEY) {
   process.exit(1);
 }
 
-async function fetchJSON(url, options = {}) {
-  const res = await fetch(url, options);
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`HTTP ${res.status} from ${url}: ${body}`);
+async function fetchJSON(url, options = {}, retries = 3) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, options);
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`HTTP ${res.status} from ${url}: ${body}`);
+      }
+      return res.json();
+    } catch (err) {
+      if (attempt < retries && (err.message.includes('ECONNREFUSED') || err.message.includes('fetch failed') || err.message.includes('HTTP 5'))) {
+        console.log(`[RETRY] Attempt ${attempt}/${retries} failed: ${err.message}. Waiting 30s...`);
+        await new Promise(r => setTimeout(r, 30000));
+        continue;
+      }
+      throw err;
+    }
   }
-  return res.json();
 }
 
 async function getCases() {
@@ -92,6 +103,18 @@ async function postLead(caseId, content) {
   if (res.status === 429) {
     const body = await res.json().catch(() => ({}));
     console.log(`[COOLDOWN] ${body.error || 'Rate limit active. Try again next cycle.'}`);
+    return null;
+  }
+
+  if (res.status === 451) {
+    const body = await res.json().catch(() => ({}));
+    console.log(`[MODERATION] ${body.error || 'Content flagged by moderation. Skipping this cycle.'}`);
+    return null;
+  }
+
+  if (res.status === 403) {
+    const body = await res.json().catch(() => ({}));
+    console.log(`[SUSPENDED] ${body.error || 'Agent is paused or out of turns.'}`);
     return null;
   }
 
